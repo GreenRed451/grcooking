@@ -112,6 +112,13 @@
 
             <!-- Кнопки управления -->
             <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Статус и настройка облачной синхронизации Firebase -->
+                <button id="cloud-sync-btn" onclick="openCloudModal()" class="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-medium flex items-center gap-1.5 transition hover:border-amber-500" title="Облачная синхронизация Firebase">
+                    <i id="cloud-sync-icon" class="ph ph-cloud-slash text-base text-slate-400"></i>
+                    <span id="cloud-sync-text" class="hidden xl:inline">Облако</span>
+                    <span id="cloud-sync-dot" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                </button>
+
                 <!-- Режим готовки (Wake Lock + NoSleep Fallback) -->
                 <button id="wakelock-btn" onclick="toggleWakeLock()" class="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-medium flex items-center gap-1.5 transition hover:border-amber-500" title="Не гасить экран во время готовки">
                     <i id="wakelock-icon" class="ph ph-sun-dim text-base text-slate-400"></i>
@@ -300,13 +307,79 @@
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЙКИ FIREBASE СИНХРОНИЗАЦИИ -->
+    <div id="cloud-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 max-w-lg w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-stone-200 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                        <i class="ph-fill ph-cloud-arrow-up text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif font-bold text-base sm:text-lg leading-tight">Облачная синхронизация</h3>
+                        <p id="cloud-modal-status" class="text-[11px] text-slate-500">Статус: проверка...</p>
+                    </div>
+                </div>
+                <button onclick="closeCloudModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="p-3 rounded-xl bg-stone-100 dark:bg-slate-800/70 space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">Ваш ID пользователя:</span>
+                        <code id="cloud-user-id" class="font-mono text-[11px] bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-stone-200 dark:border-slate-700 select-all">не авторизован</code>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">ID книги (комнаты):</span>
+                        <input id="cloud-room-input" type="text" value="my-cookbook" placeholder="my-cookbook" class="font-mono text-[11px] bg-white dark:bg-slate-900 px-2 py-1 rounded border border-stone-200 dark:border-slate-700 w-36 text-right outline-none focus:border-amber-500">
+                    </div>
+                    <p class="text-[11px] text-slate-400 pt-1">Укажите одинаковый «ID книги» на телефоне и ПК, чтобы они синхронизировали одну и ту же базу рецептов.</p>
+                </div>
+
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-500 mb-1">Конфигурация Firebase (JSON или объект firebaseConfig)</label>
+                    <textarea id="cloud-config-input" rows="6" placeholder='{"apiKey": "AIzaSy...", "authDomain": "...", "projectId": "...", "appId": "..."}' class="w-full p-3 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 font-mono text-[11px] outline-none focus:border-amber-500"></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Вставьте скопированный из консоли Firebase объект <code>firebaseConfig</code> (можно прямо с текстом <code>const firebaseConfig = {...}</code>).</p>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-stone-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="forcePushLocalToCloud()" class="px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5" title="Выгрузить текущие рецепты в облако">
+                    <i class="ph ph-upload-simple"></i> Выгрузить текущие в облако
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeCloudModal()" class="px-3 py-2 rounded-xl border border-stone-200 dark:border-slate-700 text-xs font-semibold">Закрыть</button>
+                    <button type="button" onclick="saveCustomFirebaseConfig()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-sm">Подключить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         /**************************************************************
-         * 1. БАЗА ДАННЫХ И БЕЗОПАСНОЕ ХРАНИЛИЩЕ (С поддержкой iframe)
+         * 1. БАЗА ДАННЫХ И БЕЗОПАСНОЕ ХРАНИЛИЩЕ (С поддержкой Firebase)
          **************************************************************/
         const STORAGE_KEY_RECIPES = 'smart_cookbook_recipes_v2';
         const STORAGE_KEY_CHECKS = 'smart_cookbook_checks_v2';
+        const STORAGE_KEY_FB_CONFIG = 'smart_cookbook_fb_config_v1';
+        const STORAGE_KEY_FB_ROOM = 'smart_cookbook_fb_room_v1';
         const AVAILABLE_UNITS = ['г', 'кг', 'мл', 'л', 'шт.', 'ч. л.', 'ст. л.', 'щепотка', 'по вкусу'];
+
+        // Если вы хостите файл на GitHub Pages и хотите вшить ключи прямо в код,
+        // вставьте сюда значения из консоли Firebase:
+        const HARDCODED_FIREBASE_CONFIG = null; 
+        /* Пример:
+        const HARDCODED_FIREBASE_CONFIG = {
+            apiKey: "AIzaSy...",
+            authDomain: "my-recipes.firebaseapp.com",
+            projectId: "my-recipes",
+            storageBucket: "my-recipes.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+        */
 
         const DEFAULT_RECIPES = [
             {
@@ -458,10 +531,87 @@
 
         function saveRecipesToStorage() {
             safeSetItem(STORAGE_KEY_RECIPES, JSON.stringify(recipes));
+            if (typeof window.syncStateToCloud === 'function') {
+                window.syncStateToCloud();
+            }
         }
 
         function saveChecksToStorage() {
             safeSetItem(STORAGE_KEY_CHECKS, JSON.stringify(checkState));
+            if (typeof window.syncStateToCloud === 'function') {
+                window.syncStateToCloud();
+            }
+        }
+
+        function openCloudModal() {
+            const modal = document.getElementById('cloud-modal');
+            const configInput = document.getElementById('cloud-config-input');
+            const roomInput = document.getElementById('cloud-room-input');
+            const savedCfg = safeGetItem(STORAGE_KEY_FB_CONFIG);
+            const savedRoom = safeGetItem(STORAGE_KEY_FB_ROOM) || 'my-cookbook';
+            if (configInput && savedCfg) configInput.value = savedCfg;
+            if (roomInput) roomInput.value = savedRoom;
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeCloudModal() {
+            const modal = document.getElementById('cloud-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function parseLooseFirebaseConfig(rawText) {
+            if (!rawText || !rawText.trim()) return null;
+            let text = rawText.trim();
+            const firstBrace = text.indexOf('{');
+            const lastBrace = text.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                text = text.slice(firstBrace, lastBrace + 1);
+            }
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                // Позволяем вставлять JS-объект без кавычек у ключей (прямо из Firebase Console)
+                const jsonNormalized = text
+                    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
+                    .replace(/'/g, '"')
+                    .replace(/,\s*}/g, '}');
+                return JSON.parse(jsonNormalized);
+            }
+        }
+
+        function saveCustomFirebaseConfig() {
+            const configInput = document.getElementById('cloud-config-input');
+            const roomInput = document.getElementById('cloud-room-input');
+            const roomName = (roomInput && roomInput.value.trim()) ? roomInput.value.trim().replace(/[^a-zA-Z0-9_-]/g, '-') : 'my-cookbook';
+            safeSetItem(STORAGE_KEY_FB_ROOM, roomName);
+
+            const rawVal = configInput ? configInput.value.trim() : '';
+            if (rawVal) {
+                try {
+                    const parsed = parseLooseFirebaseConfig(rawVal);
+                    if (!parsed || !parsed.apiKey || !parsed.projectId) {
+                        showToast('В конфигурации должны быть apiKey и projectId', 'error');
+                        return;
+                    }
+                    safeSetItem(STORAGE_KEY_FB_CONFIG, JSON.stringify(parsed, null, 2));
+                } catch (err) {
+                    showToast('Не удалось распознать объект firebaseConfig', 'error');
+                    return;
+                }
+            }
+
+            if (typeof window.initFirebaseSync === 'function') {
+                window.initFirebaseSync(true);
+            }
+            closeCloudModal();
+        }
+
+        function forcePushLocalToCloud() {
+            if (typeof window.syncStateToCloud === 'function') {
+                window.syncStateToCloud(true);
+            } else {
+                showToast('Облако еще не подключено', 'error');
+            }
         }
 
         function ensureRecipeCheckState(recId) {
@@ -1262,6 +1412,187 @@
                     menu.classList.add('hidden');
                 }
             });
+        });
+    </script>
+
+    <!-- МОДУЛЬ FIREBASE ДЛЯ ОБЛАЧНОЙ СИНХРОНИЗАЦИИ В РЕАЛЬНОМ ВРЕМЕНИ -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let fbApp = null;
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let unsubscribeSnapshot = null;
+        let isApplyingRemoteUpdate = false;
+
+        function updateCloudIndicator(state, message) {
+            const icon = document.getElementById('cloud-sync-icon');
+            const dot = document.getElementById('cloud-sync-dot');
+            const text = document.getElementById('cloud-sync-text');
+            const modalStatus = document.getElementById('cloud-modal-status');
+            const userIdEl = document.getElementById('cloud-user-id');
+
+            if (modalStatus) modalStatus.textContent = `Статус: ${message}`;
+            if (userIdEl && currentUser) userIdEl.textContent = currentUser.uid;
+
+            if (!icon || !dot) return;
+            if (state === 'connected') {
+                icon.className = 'ph-fill ph-cloud-check text-base text-emerald-500';
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                if (text) text.textContent = 'Синхронизировано';
+            } else if (state === 'syncing') {
+                icon.className = 'ph ph-arrows-clockwise text-base text-amber-500 animate-spin';
+                dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+                if (text) text.textContent = 'Синхронизация...';
+            } else if (state === 'error') {
+                icon.className = 'ph-fill ph-cloud-warning text-base text-rose-500';
+                dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+                if (text) text.textContent = 'Ошибка облака';
+            } else {
+                icon.className = 'ph ph-cloud-slash text-base text-slate-400';
+                dot.className = 'w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600';
+                if (text) text.textContent = 'Облако';
+            }
+        }
+
+        function resolveFirebaseConfig() {
+            // 1. Пользовательский конфиг из модального окна
+            const savedCustom = safeGetItem(STORAGE_KEY_FB_CONFIG);
+            if (savedCustom) {
+                try {
+                    const parsed = JSON.parse(savedCustom);
+                    if (parsed && parsed.apiKey) return parsed;
+                } catch (e) {}
+            }
+            // 2. Вшитый в код конфиг (для GitHub Pages)
+            if (typeof HARDCODED_FIREBASE_CONFIG !== 'undefined' && HARDCODED_FIREBASE_CONFIG && HARDCODED_FIREBASE_CONFIG.apiKey) {
+                return HARDCODED_FIREBASE_CONFIG;
+            }
+            // 3. Глобальный конфиг окружения
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                try {
+                    return typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+                } catch (e) {}
+            }
+            return null;
+        }
+
+        function getActiveDocRef() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'smart-cookbook-app';
+            const roomName = safeGetItem(STORAGE_KEY_FB_ROOM) || 'my-cookbook';
+            // Строгий путь коллекции по правилам безопасности: /artifacts/{appId}/public/data/{collectionName}/{docId}
+            return doc(db, 'artifacts', appId, 'public', 'data', 'cookbook_rooms', roomName);
+        }
+
+        window.syncStateToCloud = async function(showNotification = false) {
+            if (!db || !currentUser || isApplyingRemoteUpdate) return;
+            try {
+                updateCloudIndicator('syncing', 'сохранение в облако...');
+                const docRef = getActiveDocRef();
+                await setDoc(docRef, {
+                    recipesJson: JSON.stringify(recipes),
+                    checkStateJson: JSON.stringify(checkState),
+                    updatedAt: Date.now(),
+                    updatedBy: currentUser.uid
+                }, { merge: true });
+                updateCloudIndicator('connected', 'подключено и синхронизировано');
+                if (showNotification) {
+                    showToast('Данные успешно выгружены в облако Firebase!', 'success');
+                }
+            } catch (err) {
+                console.error('Ошибка синхронизации с Firestore:', err);
+                updateCloudIndicator('error', 'ошибка доступа к базе (проверьте Rules)');
+                if (showNotification) {
+                    showToast('Ошибка записи в облако: проверьте правила Firestore', 'error');
+                }
+            }
+        };
+
+        window.initFirebaseSync = async function(isManualTrigger = false) {
+            const firebaseConfig = resolveFirebaseConfig();
+            if (!firebaseConfig) {
+                updateCloudIndicator('offline', 'не настроено (нажмите на иконку облака)');
+                return;
+            }
+
+            try {
+                updateCloudIndicator('syncing', 'подключение к Firebase...');
+                if (unsubscribeSnapshot) {
+                    unsubscribeSnapshot();
+                    unsubscribeSnapshot = null;
+                }
+
+                fbApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+                auth = getAuth(fbApp);
+                db = getFirestore(fbApp);
+
+                // Обязательная авторизация перед любыми запросами к Firestore
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                currentUser = auth.currentUser;
+                if (!currentUser) return;
+
+                const docRef = getActiveDocRef();
+                unsubscribeSnapshot = onSnapshot(
+                    docRef,
+                    (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.data();
+                            if (data && data.recipesJson) {
+                                isApplyingRemoteUpdate = true;
+                                try {
+                                    const remoteRecipes = JSON.parse(data.recipesJson);
+                                    const remoteChecks = data.checkStateJson ? JSON.parse(data.checkStateJson) : {};
+                                    if (Array.isArray(remoteRecipes) && remoteRecipes.length > 0) {
+                                        recipes = remoteRecipes;
+                                        checkState = remoteChecks;
+                                        if (!recipes.some(r => r.id === activeRecipeId)) {
+                                            activeRecipeId = recipes[0] ? recipes[0].id : null;
+                                        }
+                                        safeSetItem(STORAGE_KEY_RECIPES, JSON.stringify(recipes));
+                                        safeSetItem(STORAGE_KEY_CHECKS, JSON.stringify(checkState));
+                                        renderTagFilters();
+                                        renderRecipeList();
+                                        renderActiveRecipe();
+                                    }
+                                } catch (parseErr) {
+                                    console.error('Ошибка чтения облачных данных:', parseErr);
+                                } finally {
+                                    isApplyingRemoteUpdate = false;
+                                }
+                            }
+                            updateCloudIndicator('connected', 'подключено в реальном времени');
+                        } else {
+                            // Если в облаке еще нет документа этой книги — создаем его из текущих рецептов
+                            window.syncStateToCloud(false);
+                        }
+                    },
+                    (error) => {
+                        console.error('Ошибка подписки Firestore:', error);
+                        updateCloudIndicator('error', 'ошибка чтения (проверьте Firestore Rules)');
+                    }
+                );
+
+                if (isManualTrigger) {
+                    showToast('Облако Firebase подключено!', 'success');
+                }
+            } catch (err) {
+                console.error('Ошибка инициализации Firebase:', err);
+                updateCloudIndicator('error', 'ошибка авторизации (включите Anonymous Auth)');
+                if (isManualTrigger) {
+                    showToast('Ошибка подключения: проверьте Anonymous Auth и ключи', 'error');
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            window.initFirebaseSync(false);
         });
     </script>
 </body>
