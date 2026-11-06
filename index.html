@@ -623,9 +623,9 @@
                             ? 'bg-stone-100/70 dark:bg-slate-800/40 border-stone-200/50 dark:border-slate-800 opacity-60'
                             : 'bg-stone-50/70 dark:bg-slate-800/80 border-stone-200/80 dark:border-slate-700'
                     }">
-                        <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIng('${escapeHtml(rec.id)}', '${escapeHtml(ing.id)}')" class="w-4 h-4 rounded accent-amber-600 cursor-pointer shrink-0">
-                            <span class="text-sm font-medium truncate ${isChecked ? 'line-through text-slate-400' : ''}">${escapeHtml(ing.name)}</span>
+                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0 py-0.5">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIng('${escapeHtml(rec.id)}', '${escapeHtml(ing.id)}')" class="w-4 h-4 mt-0.5 rounded accent-amber-600 cursor-pointer shrink-0">
+                            <span class="text-sm font-medium break-words leading-snug ${isChecked ? 'line-through text-slate-400' : ''}">${escapeHtml(ing.name)}</span>
                         </label>
                         <div class="flex items-center gap-1 shrink-0">
                             ${ing.amount > 0 ? `
