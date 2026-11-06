@@ -49,6 +49,9 @@
                 page-break-before: always !important;
                 break-before: page !important;
             }
+            .print-only-text {
+                display: inline !important;
+            }
         }
 
         /* Специальный режим при генерации PDF через html2pdf */
@@ -60,6 +63,10 @@
         }
         .pdf-export-mode .no-print {
             display: none !important;
+        }
+        .pdf-export-mode .print-only-text {
+            display: inline !important;
+            font-weight: 600;
         }
         .pdf-export-mode * {
             color: #0f172a !important;
@@ -113,11 +120,11 @@
                 </button>
 
                 <!-- Бэкап базы (JSON) -->
-                <div class="relative">
-                    <button onclick="toggleBackupMenu()" class="p-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 transition" title="Резервная копия и настройки базы">
+                <div class="relative" id="backup-dropdown-wrapper">
+                    <button onclick="toggleBackupMenu(event)" class="p-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 transition" title="Резервная копия и настройки базы">
                         <i class="ph ph-database text-base"></i>
                     </button>
-                    <div id="backup-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-stone-200 dark:border-slate-800 p-2 z-50">
+                    <div id="backup-menu" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-2 w-60 max-w-[calc(100vw-24px)] rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-stone-200 dark:border-slate-800 p-2 z-50">
                         <div class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Управление базой</div>
                         <button onclick="exportDatabaseJSON()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium hover:bg-stone-100 dark:hover:bg-slate-800 flex items-center gap-2">
                             <i class="ph ph-download-simple text-amber-600 text-base"></i> Скачать базу (.json)
@@ -744,7 +751,7 @@
                 if (u.startsWith('сек')) seconds = count;
                 else if (u.startsWith('час')) seconds = count * 3600;
                 const label = `Шаг ${stepNumber} (${match})`;
-                return `<button type="button" onclick="startStepTimer(${seconds}, '${label.replace(/'/g, "\\'")}')" class="no-print inline-flex items-center gap-1 px-2 py-0.5 mx-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-semibold text-xs hover:bg-amber-200 transition"><i class="ph-bold ph-timer"></i> ${match}</button><span class="hidden print:inline">${match}</span>`;
+                return `<button type="button" onclick="startStepTimer(${seconds}, '${label.replace(/'/g, "\\'")}')" class="no-print inline-flex items-center gap-1 px-2 py-0.5 mx-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-semibold text-xs hover:bg-amber-200 transition"><i class="ph-bold ph-timer"></i> ${match}</button><span class="print-only-text hidden">${match}</span>`;
             });
         }
 
@@ -1219,7 +1226,8 @@
         function toggleBulkParser() {
             document.getElementById('bulk-parser-box').classList.toggle('hidden');
         }
-        function toggleBackupMenu() {
+        function toggleBackupMenu(e) {
+            if (e) e.stopPropagation();
             document.getElementById('backup-menu').classList.toggle('hidden');
         }
         function scrollToTop() {
@@ -1245,6 +1253,15 @@
             renderTagFilters();
             renderRecipeList();
             renderActiveRecipe();
+
+            // Закрытие выпадающего меню бэкапа при клике вне его
+            document.addEventListener('click', (e) => {
+                const wrapper = document.getElementById('backup-dropdown-wrapper');
+                const menu = document.getElementById('backup-menu');
+                if (wrapper && menu && !wrapper.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
         });
     </script>
 </body>
