@@ -561,22 +561,38 @@
 
         function parseLooseFirebaseConfig(rawText) {
             if (!rawText || !rawText.trim()) return null;
-            let text = rawText.trim();
-            const firstBrace = text.indexOf('{');
-            const lastBrace = text.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) {
-                text = text.slice(firstBrace, lastBrace + 1);
-            }
+            const text = rawText.trim();
+
+            // 1. Сначала пробуем чистый JSON, если вставили уже готовый JSON
             try {
-                return JSON.parse(text);
-            } catch (e) {
-                // Позволяем вставлять JS-объект без кавычек у ключей (прямо из Firebase Console)
-                const jsonNormalized = text
-                    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
-                    .replace(/'/g, '"')
-                    .replace(/,\s*}/g, '}');
-                return JSON.parse(jsonNormalized);
+                const direct = JSON.parse(text);
+                if (direct && direct.apiKey && direct.projectId) return direct;
+            } catch (e) {}
+
+            // 2. Если вставили весь блок <script> или const firebaseConfig = { ... },
+            // извлекаем блок firebaseConfig или ищем известные ключи напрямую по тексту
+            let targetBlock = text;
+            const cfgMatch = text.match(/firebaseConfig\s*=\s*(\{[\s\S]*?\})/);
+            if (cfgMatch && cfgMatch[1]) {
+                targetBlock = cfgMatch[1];
             }
+
+            // Извлекаем пары ключ: "значение" (устойчиво к двоеточиям в appId и комментариям)
+            const result = {};
+            const kvRegex = /([a-zA-Z0-9_]+)\s*:\s*["']([^"']+)["']/g;
+            let match;
+            while ((match = kvRegex.exec(targetBlock)) !== null) {
+                const key = match[1];
+                const val = match[2].trim();
+                if (['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId', 'databaseURL'].includes(key)) {
+                    result[key] = val;
+                }
+            }
+
+            if (result.apiKey && result.projectId) {
+                return result;
+            }
+            return null;
         }
 
         function saveCustomFirebaseConfig() {
