@@ -259,8 +259,8 @@
 
                     <!-- Быстрый парсер списка -->
                     <div id="bulk-parser-box" class="hidden mb-3 p-3 rounded-xl bg-amber-50/70 dark:bg-slate-800/80 border border-amber-200 dark:border-slate-700 space-y-2">
-                        <p class="text-xs text-slate-600 dark:text-slate-300">Вставьте скопированный список продуктов (каждый с новой строки, например: <code>Спагетти - 200 г</code>):</p>
-                        <textarea id="bulk-ingredients-text" rows="4" placeholder="Мука пшеничная 300 г&#10;Яйца куриные 3 шт.&#10;Молоко 500 мл" class="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-xs outline-none"></textarea>
+                        <p class="text-xs text-slate-600 dark:text-slate-300">Вставьте скопированный список продуктов (каждый с новой строки). Чтобы создать подзаголовок этапа, напишите строку с двоеточием на конце (например, <code>Соус Бешамель:</code>):</p>
+                        <textarea id="bulk-ingredients-text" rows="4" placeholder="Соус Бешамель:&#10;Молоко 500 мл&#10;Масло сливочное 50 г&#10;Мука 40 г" class="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-xs outline-none"></textarea>
                         <div class="flex justify-end gap-2">
                             <button type="button" onclick="toggleBulkParser()" class="px-3 py-1 rounded-lg text-xs text-slate-500">Отмена</button>
                             <button type="button" onclick="parseBulkIngredients()" class="px-3 py-1 rounded-lg bg-amber-600 text-white text-xs font-semibold">Распознать</button>
@@ -270,16 +270,37 @@
                     <div id="form-ingredients-list" class="space-y-2"></div>
                 </div>
 
+                <!-- Блок вложенных рецептов (Ссылки на заготовки / этапы) -->
+                <div class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-slate-800/50 border border-amber-200/70 dark:border-slate-700 space-y-2.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <label class="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400 flex items-center gap-1.5">
+                                <i class="ph-bold ph-link"></i> Вложенные рецепты (пюре, соусы, тесто)
+                            </label>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Их продукты и шаги автоматически добавятся отдельным этапом и будут пересчитываться вместе с блюдом</p>
+                        </div>
+                        <button type="button" onclick="addLinkedRecipeRow()" class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-500 transition">
+                            + Привязать рецепт
+                        </button>
+                    </div>
+                    <div id="form-linked-recipes-list" class="space-y-2"></div>
+                </div>
+
                 <!-- Блок пошагового приготовления -->
                 <div>
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <div>
-                            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500">Шаги приготовления *</label>
-                            <p class="text-[11px] text-slate-400">Напишите время (например, «15 минут»), и оно станет интерактивным таймером</p>
+                            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500">Шаги и этапы приготовления *</label>
+                            <p class="text-[11px] text-slate-400">Разбивайте готовку на этапы (например, «Бешамель», «Сборка») и указывайте время («15 минут») для таймеров</p>
                         </div>
-                        <button type="button" onclick="addStepRow()" class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 transition">
-                            + Шаг
-                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="addStepSectionRow()" class="px-2.5 py-1 rounded-lg bg-stone-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-stone-300 dark:hover:bg-slate-700 transition">
+                                + Этап (заголовок)
+                            </button>
+                            <button type="button" onclick="addStepRow()" class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 transition">
+                                + Шаг
+                            </button>
+                        </div>
                     </div>
                     <div id="form-steps-list" class="space-y-2"></div>
                 </div>
@@ -449,6 +470,55 @@
                     'Добавьте просеянную муку и перемешайте. Сформируйте аккуратные шайбочки, обваляв их в небольшом количестве муки с помощью стакана или ножа.',
                     'Обжаривайте сырники на разогретой сковороде на среднем огне по 4 минуты с каждой стороны под крышкой до золотистой корочки.'
                 ]
+            },
+            {
+                id: 'recipe-mashed-potatoes',
+                title: 'Идеальное сливочное картофельное пюре',
+                prepTime: '30 мин',
+                baseServings: 4,
+                tags: ['Гарнир', 'База', 'Картофель'],
+                notes: 'Молоко обязательно должно быть горячим, а масло — холодным из холодильника. Этот рецепт можно подключать как готовый этап в запеканки и пироги!',
+                ingredients: [
+                    { id: 'mp1', name: 'Картофель (крахмалистых сортов)', amount: 800, unit: 'г' },
+                    { id: 'mp2', name: 'Масло сливочное 82.5%', amount: 80, unit: 'г' },
+                    { id: 'mp3', name: 'Молоко теплое', amount: 180, unit: 'мл' },
+                    { id: 'mp4', name: 'Соль', amount: 8, unit: 'г' }
+                ],
+                steps: [
+                    'Очистите картофель, крупно нарежьте и отварите в подсоленной воде до полной мягкости 20 минут.',
+                    'Слейте воду и подсушите картофель в горячей кастрюле на минимальном огне 1 минуту, чтобы ушла лишняя влага.',
+                    'Разомните картофель толкушкой, вмешайте кубики сливочного масла, а затем тонкой струйкой влейте горячее молоко, взбивая до воздушности.'
+                ]
+            },
+            {
+                id: 'recipe-potato-casserole',
+                title: 'Домашняя картофельная запеканка с мясным соусом',
+                prepTime: '50 мин',
+                baseServings: 4,
+                tags: ['Духовка', 'Ужин', 'Мясо'],
+                notes: 'Пример модульного рецепта: картофельное пюре подтягивается по ссылке из отдельного рецепта в вашу корзину покупок и шаги, а само блюдо разделено на этапы!',
+                linkedRecipes: [
+                    { recipeId: 'recipe-mashed-potatoes', ratio: 1, label: 'Пюре' }
+                ],
+                ingredients: [
+                    { id: 'pc-sec-1', name: 'Мясной слой', isSection: true },
+                    { id: 'pc1', name: 'Фарш говяжий или домашний', amount: 500, unit: 'г', group: 'Мясной слой' },
+                    { id: 'pc2', name: 'Лук репчатый', amount: 150, unit: 'г', group: 'Мясной слой' },
+                    { id: 'pc3', name: 'Томатная паста или протертые томаты', amount: 80, unit: 'г', group: 'Мясной слой' },
+                    { id: 'pc4', name: 'Масло растительное для жарки', amount: 20, unit: 'мл', group: 'Мясной слой' },
+                    { id: 'pc-sec-2', name: 'Для сырной корочки', isSection: true },
+                    { id: 'pc5', name: 'Сыр твердый (моцарелла или чеддер)', amount: 100, unit: 'г', group: 'Для сырной корочки' }
+                ],
+                steps: [
+                    '## Этап 1: Мясной соус',
+                    'Мелко нарежьте лук и обжарьте на растительном масле до прозрачности 4 минуты.',
+                    'Добавьте фарш, разминая комочки лопаткой, и обжаривайте на сильном огне 8 минут.',
+                    'Добавьте томатную пасту, соль, перец и немного воды, тушите под крышкой 5 минут до сочности.',
+                    '## Этап 2: Сборка и запекание',
+                    'В форму для запекания выложите обжаренный мясной соус ровным слоем.',
+                    'Сверху распределите готовое картофельное пюре и посыпьте натертым сыром.',
+                    'Запекайте в разогретой до 190 градусов духовке 20 минут до румяной золотистой корочки.'
+                ]
             }
         ];
 
@@ -507,6 +577,12 @@
                     const parsed = JSON.parse(rawRecipes);
                     if (Array.isArray(parsed) && parsed.length > 0) {
                         recipes = parsed;
+                        // Автоматически добавим новые демо-рецепты с этапами и ссылками, если их еще нет в сохраненной базе
+                        DEFAULT_RECIPES.forEach(defRec => {
+                            if ((defRec.id === 'recipe-mashed-potatoes' || defRec.id === 'recipe-potato-casserole') && !recipes.some(r => r.id === defRec.id)) {
+                                recipes.push(JSON.parse(JSON.stringify(defRec)));
+                            }
+                        });
                     }
                 } catch (e) {}
             }
@@ -697,6 +773,8 @@
 
             container.innerHTML = filtered.map(rec => {
                 const isSelected = rec.id === activeRecipeId;
+                const realIngCount = (rec.ingredients || []).filter(i => !i.isSection).length;
+                const linkedCount = (rec.linkedRecipes || []).length;
                 return `
                     <div onclick="selectRecipe('${escapeHtml(rec.id)}')" class="p-3 rounded-xl border cursor-pointer transition ${
                         isSelected
@@ -707,7 +785,8 @@
                         <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                             ${rec.prepTime ? `<span class="flex items-center gap-1"><i class="ph ph-clock"></i> ${escapeHtml(rec.prepTime)}</span>` : ''}
                             <span>• ${rec.baseServings} порц.</span>
-                            <span>• ${(rec.ingredients || []).length} ингр.</span>
+                            <span>• ${realIngCount} ингр.</span>
+                            ${linkedCount > 0 ? `<span class="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-0.5"><i class="ph-bold ph-link"></i> +${linkedCount} заготов.</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -732,14 +811,18 @@
             updateDisplayedIngredientAmounts(rec);
         }
 
-        function updateScaleByIngredient(ingId, newAmountVal) {
+        function updateScaleByIngredient(ingId, newAmountVal, baseAmountOverride = null) {
             const rec = recipes.find(r => r.id === activeRecipeId);
             if (!rec) return;
-            const ing = (rec.ingredients || []).find(i => i.id === ingId);
-            if (!ing || !ing.amount || ing.amount <= 0) return;
+            let baseAmt = baseAmountOverride;
+            if (!baseAmt) {
+                const ing = (rec.ingredients || []).find(i => i.id === ingId);
+                if (ing && ing.amount) baseAmt = ing.amount;
+            }
+            if (!baseAmt || baseAmt <= 0) return;
             const val = parseFloat(newAmountVal);
             if (!val || val <= 0) return;
-            activeScaleFactor = val / ing.amount;
+            activeScaleFactor = val / baseAmt;
             const servingsInput = document.getElementById('active-servings-input');
             if (servingsInput) {
                 servingsInput.value = formatSmartNumber(rec.baseServings * activeScaleFactor);
@@ -748,12 +831,28 @@
         }
 
         function updateDisplayedIngredientAmounts(rec, skipIngId = null) {
+            // Обновляем собственные ингредиенты рецепта
             (rec.ingredients || []).forEach(ing => {
-                if (ing.id === skipIngId || !ing.amount) return;
+                if (ing.isSection || ing.id === skipIngId || !ing.amount) return;
                 const el = document.getElementById(`ing-input-${ing.id}`);
                 if (el) {
                     el.value = formatSmartNumber(ing.amount * activeScaleFactor);
                 }
+            });
+            // Обновляем ингредиенты всех вложенных рецептов
+            (rec.linkedRecipes || []).forEach(link => {
+                const subRec = recipes.find(r => r.id === link.recipeId);
+                if (!subRec) return;
+                const ratio = parseFloat(link.ratio) || 1;
+                (subRec.ingredients || []).forEach(subIng => {
+                    if (subIng.isSection || !subIng.amount) return;
+                    const compositeId = `linked_${subRec.id}_${subIng.id}`;
+                    if (compositeId === skipIngId) return;
+                    const el = document.getElementById(`ing-input-${compositeId}`);
+                    if (el) {
+                        el.value = formatSmartNumber(subIng.amount * ratio * activeScaleFactor);
+                    }
+                });
             });
         }
 
@@ -768,6 +867,38 @@
             renderActiveRecipe();
         }
 
+        function renderIngredientItemHtml(recId, ingId, name, baseAmount, unit, isChecked) {
+            const scaledVal = baseAmount ? formatSmartNumber(baseAmount * activeScaleFactor) : '';
+            return `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border transition ${
+                    isChecked
+                        ? 'bg-stone-100/70 dark:bg-slate-800/40 border-stone-200/50 dark:border-slate-800 opacity-60'
+                        : 'bg-stone-50/70 dark:bg-slate-800/80 border-stone-200/80 dark:border-slate-700'
+                }">
+                    <label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0 py-0.5">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIng('${escapeHtml(recId)}', '${escapeHtml(ingId)}')" class="w-4 h-4 mt-0.5 rounded accent-amber-600 cursor-pointer shrink-0">
+                        <span class="text-sm font-medium break-words leading-snug ${isChecked ? 'line-through text-slate-400' : ''}">${escapeHtml(name)}</span>
+                    </label>
+                    <div class="flex items-center gap-1 shrink-0">
+                        ${baseAmount > 0 ? `
+                            <input
+                                type="number"
+                                id="ing-input-${escapeHtml(ingId)}"
+                                value="${scaledVal}"
+                                step="any"
+                                oninput="updateScaleByIngredient('${escapeHtml(ingId)}', this.value, ${baseAmount})"
+                                title="Измените вес этого продукта для пропорционального пересчета всего рецепта"
+                                class="w-16 text-right font-bold text-sm px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 focus:border-amber-500 outline-none"
+                            >
+                            <span class="text-xs text-slate-500 dark:text-slate-400 w-10">${escapeHtml(unit)}</span>
+                        ` : `
+                            <span class="text-xs italic text-slate-400 px-2">${escapeHtml(unit)}</span>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
         function renderActiveRecipe() {
             const container = document.getElementById('recipe-detail-card');
             if (!container) return;
@@ -780,57 +911,146 @@
             const checks = ensureRecipeCheckState(rec.id);
             const currentServings = formatSmartNumber(rec.baseServings * activeScaleFactor);
 
-            const ingredientsHtml = (rec.ingredients || []).map(ing => {
-                const isChecked = !!checks.ingredients[ing.id];
-                const scaledVal = ing.amount ? formatSmartNumber(ing.amount * activeScaleFactor) : '';
-                return `
-                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border transition ${
-                        isChecked
-                            ? 'bg-stone-100/70 dark:bg-slate-800/40 border-stone-200/50 dark:border-slate-800 opacity-60'
-                            : 'bg-stone-50/70 dark:bg-slate-800/80 border-stone-200/80 dark:border-slate-700'
-                    }">
-                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0 py-0.5">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIng('${escapeHtml(rec.id)}', '${escapeHtml(ing.id)}')" class="w-4 h-4 mt-0.5 rounded accent-amber-600 cursor-pointer shrink-0">
-                            <span class="text-sm font-medium break-words leading-snug ${isChecked ? 'line-through text-slate-400' : ''}">${escapeHtml(ing.name)}</span>
-                        </label>
-                        <div class="flex items-center gap-1 shrink-0">
-                            ${ing.amount > 0 ? `
-                                <input
-                                    type="number"
-                                    id="ing-input-${escapeHtml(ing.id)}"
-                                    value="${scaledVal}"
-                                    step="any"
-                                    oninput="updateScaleByIngredient('${escapeHtml(ing.id)}', this.value)"
-                                    title="Измените вес этого продукта для пропорционального пересчета всего рецепта"
-                                    class="w-16 text-right font-bold text-sm px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 focus:border-amber-500 outline-none"
-                                >
-                                <span class="text-xs text-slate-500 dark:text-slate-400 w-10">${escapeHtml(ing.unit)}</span>
-                            ` : `
-                                <span class="text-xs italic text-slate-400 px-2">${escapeHtml(ing.unit)}</span>
-                            `}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // 1. Формируем список собственных ингредиентов (с поддержкой подзаголовков этапов)
+            let ingredientsSectionsHtml = '';
+            let currentGridItems = [];
 
-            const stepsHtml = (rec.steps || []).map((stepText, idx) => {
-                const isDone = !!checks.steps[idx];
-                const stepWithTimers = injectTimersIntoText(escapeHtml(stepText), rec.title, idx + 1);
-                return `
-                    <div class="p-3.5 rounded-xl border transition flex items-start gap-3 ${
-                        isDone
-                            ? 'bg-stone-100/60 dark:bg-slate-800/40 border-stone-200/60 dark:border-slate-800 opacity-60'
-                            : 'bg-stone-50/50 dark:bg-slate-800/60 border-stone-200/80 dark:border-slate-700'
-                    }">
-                        <button onclick="toggleStep('${escapeHtml(rec.id)}', ${idx})" class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 transition ${
-                            isDone ? 'bg-emerald-600 text-white' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
-                        }">
-                            ${isDone ? '<i class="ph-bold ph-check"></i>' : idx + 1}
-                        </button>
-                        <div class="text-sm leading-relaxed flex-1 ${isDone ? 'line-through text-slate-400' : ''}">${stepWithTimers}</div>
+            const flushGridItems = () => {
+                if (currentGridItems.length > 0) {
+                    ingredientsSectionsHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 mb-4">${currentGridItems.join('')}</div>`;
+                    currentGridItems = [];
+                }
+            };
+
+            (rec.ingredients || []).forEach(ing => {
+                if (ing.isSection) {
+                    flushGridItems();
+                    ingredientsSectionsHtml += `
+                        <div class="flex items-center gap-2 mt-4 mb-2 pb-1 border-b border-stone-200 dark:border-slate-800">
+                            <i class="ph-bold ph-Cooking-pot text-amber-600 text-sm"></i>
+                            <h4 class="font-serif font-bold text-sm text-slate-800 dark:text-slate-200">${escapeHtml(ing.name)}:</h4>
+                        </div>
+                    `;
+                } else {
+                    const isChecked = !!checks.ingredients[ing.id];
+                    currentGridItems.push(renderIngredientItemHtml(rec.id, ing.id, ing.name, ing.amount, ing.unit, isChecked));
+                }
+            });
+            flushGridItems();
+
+            // 2. Формируем подсписки ингредиентов из привязанных рецептов (например, "Пюре:")
+            (rec.linkedRecipes || []).forEach(link => {
+                const subRec = recipes.find(r => r.id === link.recipeId);
+                if (!subRec) return;
+                const ratio = parseFloat(link.ratio) || 1;
+                const groupTitle = (link.label && link.label.trim()) ? link.label.trim() : subRec.title;
+
+                const subItemsHtml = (subRec.ingredients || [])
+                    .filter(si => !si.isSection)
+                    .map(subIng => {
+                        const compositeId = `linked_${subRec.id}_${subIng.id}`;
+                        const isChecked = !!checks.ingredients[compositeId];
+                        const effectiveBaseAmount = (subIng.amount || 0) * ratio;
+                        return renderIngredientItemHtml(rec.id, compositeId, subIng.name, effectiveBaseAmount, subIng.unit, isChecked);
+                    }).join('');
+
+                ingredientsSectionsHtml += `
+                    <div class="mt-4 p-3.5 rounded-2xl bg-amber-50/40 dark:bg-slate-800/40 border border-amber-200/70 dark:border-slate-700/80">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 pb-1.5 border-b border-amber-200/60 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-600 text-white text-[11px] font-bold uppercase tracking-wider">Этап-заготовка</span>
+                                <h4 class="font-serif font-bold text-base text-slate-900 dark:text-white">${escapeHtml(groupTitle)}:</h4>
+                                ${ratio !== 1 ? `<span class="text-xs text-slate-500">(${ratio}x от базового)</span>` : ''}
+                            </div>
+                            <button onclick="selectRecipe('${escapeHtml(subRec.id)}')" class="no-print text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1" title="Открыть этот рецепт отдельно">
+                                <i class="ph-bold ph-arrow-square-out"></i> Открыть «${escapeHtml(subRec.title)}»
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">${subItemsHtml}</div>
                     </div>
                 `;
-            }).join('');
+            });
+
+            // 3. Формируем пошаговое приготовление: сначала вложенные этапы-заготовки, затем основные этапы и шаги
+            let stepsHtml = '';
+            let visibleStepCounter = 1;
+
+            // Шаги из вложенных рецептов
+            (rec.linkedRecipes || []).forEach(link => {
+                const subRec = recipes.find(r => r.id === link.recipeId);
+                if (!subRec) return;
+                const groupTitle = (link.label && link.label.trim()) ? link.label.trim() : subRec.title;
+
+                const subStepsInner = (subRec.steps || []).map((stText, sIdx) => {
+                    if (stText.startsWith('## ')) {
+                        return `<div class="font-serif font-bold text-sm text-amber-800 dark:text-amber-300 pt-2">${escapeHtml(stText.replace(/^##\s*/, ''))}</div>`;
+                    }
+                    const compositeStepKey = `linked_${subRec.id}_${sIdx}`;
+                    const isDone = !!checks.steps[compositeStepKey];
+                    const stepWithTimers = injectTimersIntoText(escapeHtml(stText), subRec.title, visibleStepCounter);
+                    const numToShow = visibleStepCounter++;
+                    return `
+                        <div class="p-3 rounded-xl border transition flex items-start gap-3 ${
+                            isDone
+                                ? 'bg-stone-100/60 dark:bg-slate-800/40 border-stone-200/60 dark:border-slate-800 opacity-60'
+                                : 'bg-white dark:bg-slate-900/90 border-stone-200/80 dark:border-slate-700'
+                        }">
+                            <button onclick="toggleStep('${escapeHtml(rec.id)}', '${escapeHtml(compositeStepKey)}')" class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 transition ${
+                                isDone ? 'bg-emerald-600 text-white' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
+                            }">
+                                ${isDone ? '<i class="ph-bold ph-check"></i>' : numToShow}
+                            </button>
+                            <div class="text-sm leading-relaxed flex-1 ${isDone ? 'line-through text-slate-400' : ''}">${stepWithTimers}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                stepsHtml += `
+                    <div class="p-4 rounded-2xl bg-amber-50/40 dark:bg-slate-800/40 border border-amber-200/70 dark:border-slate-700 space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <i class="ph-fill ph-bookmarks text-amber-600 text-lg"></i>
+                                <h4 class="font-serif font-bold text-base text-slate-900 dark:text-white">Этап: ${escapeHtml(groupTitle)}</h4>
+                            </div>
+                            <button onclick="selectRecipe('${escapeHtml(subRec.id)}')" class="no-print text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1">
+                                Перейти к рецепту <i class="ph ph-caret-right"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-2">${subStepsInner}</div>
+                    </div>
+                `;
+            });
+
+            // Основные шаги и подзаголовки этапов рецепта
+            (rec.steps || []).forEach((stepText, idx) => {
+                if (typeof stepText === 'string' && stepText.startsWith('## ')) {
+                    const stageTitle = stepText.replace(/^##\s*/, '').trim();
+                    stepsHtml += `
+                        <div class="pt-3 pb-1 flex items-center gap-2 border-b border-stone-200 dark:border-slate-800">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <h4 class="font-serif font-bold text-base text-slate-900 dark:text-white">${escapeHtml(stageTitle)}</h4>
+                        </div>
+                    `;
+                } else {
+                    const isDone = !!checks.steps[idx];
+                    const stepWithTimers = injectTimersIntoText(escapeHtml(stepText), rec.title, visibleStepCounter);
+                    const numToShow = visibleStepCounter++;
+                    stepsHtml += `
+                        <div class="p-3.5 rounded-xl border transition flex items-start gap-3 ${
+                            isDone
+                                ? 'bg-stone-100/60 dark:bg-slate-800/40 border-stone-200/60 dark:border-slate-800 opacity-60'
+                                : 'bg-stone-50/50 dark:bg-slate-800/60 border-stone-200/80 dark:border-slate-700'
+                        }">
+                            <button onclick="toggleStep('${escapeHtml(rec.id)}', '${idx}')" class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 transition ${
+                                isDone ? 'bg-emerald-600 text-white' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
+                            }">
+                                ${isDone ? '<i class="ph-bold ph-check"></i>' : numToShow}
+                            </button>
+                            <div class="text-sm leading-relaxed flex-1 ${isDone ? 'line-through text-slate-400' : ''}">${stepWithTimers}</div>
+                        </div>
+                    `;
+                }
+            });
 
             container.innerHTML = `
                 <div class="p-5 sm:p-8 border-b border-stone-200 dark:border-slate-800 bg-stone-50/50 dark:bg-slate-900">
@@ -878,7 +1098,7 @@
                                 <button onclick="clearRecipeChecks('${escapeHtml(rec.id)}')" class="text-xs text-amber-600 dark:text-amber-400 hover:underline">Снять отметки</button>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">${ingredientsHtml}</div>
+                        <div>${ingredientsSectionsHtml}</div>
                     </div>
                     <div class="page-break-print pt-6 border-t border-stone-200 dark:border-slate-800">
                         <h3 class="font-serif font-bold text-lg mb-3">Пошаговое приготовление</h3>
@@ -1158,10 +1378,15 @@
             const formTags = document.getElementById('form-tags');
             const formNotes = document.getElementById('form-notes');
             const ingList = document.getElementById('form-ingredients-list');
+            const linkedList = document.getElementById('form-linked-recipes-list');
             const stepsList = document.getElementById('form-steps-list');
 
             ingList.innerHTML = '';
+            if (linkedList) linkedList.innerHTML = '';
             stepsList.innerHTML = '';
+
+            // Добавим кнопку "+ Этап (подсписок)" в шапку ингредиентов, если ее еще нет
+            ensureIngSectionButton();
 
             if (editRecipeId) {
                 const rec = recipes.find(r => r.id === editRecipeId);
@@ -1173,8 +1398,23 @@
                 formServings.value = rec.baseServings || 2;
                 formTags.value = (rec.tags || []).join(', ');
                 formNotes.value = rec.notes || '';
-                (rec.ingredients || []).forEach(ing => addIngredientRow(ing.name, ing.amount, ing.unit));
-                (rec.steps || []).forEach(st => addStepRow(st));
+                (rec.ingredients || []).forEach(ing => {
+                    if (ing.isSection) {
+                        addIngredientSectionRow(ing.name);
+                    } else {
+                        addIngredientRow(ing.name, ing.amount, ing.unit);
+                    }
+                });
+                (rec.linkedRecipes || []).forEach(link => {
+                    addLinkedRecipeRow(link.recipeId, link.ratio || 1, link.label || '');
+                });
+                (rec.steps || []).forEach(st => {
+                    if (typeof st === 'string' && st.startsWith('## ')) {
+                        addStepSectionRow(st.replace(/^##\s*/, ''));
+                    } else {
+                        addStepRow(st);
+                    }
+                });
             } else {
                 titleEl.textContent = 'Новый рецепт';
                 idInput.value = '';
@@ -1191,8 +1431,36 @@
             modal.classList.remove('hidden');
         }
 
+        function ensureIngSectionButton() {
+            const ingList = document.getElementById('form-ingredients-list');
+            if (!ingList || document.getElementById('btn-add-ing-section')) return;
+            const headerBtns = ingList.parentElement.querySelector('.flex.items-center.gap-2');
+            if (headerBtns) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = 'btn-add-ing-section';
+                btn.onclick = () => addIngredientSectionRow('');
+                btn.className = 'px-2.5 py-1 rounded-lg bg-stone-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-stone-300 transition';
+                btn.textContent = '+ Этап (подсписок)';
+                headerBtns.insertBefore(btn, headerBtns.lastElementChild);
+            }
+        }
+
         function closeRecipeModal() {
             document.getElementById('recipe-modal').classList.add('hidden');
+        }
+
+        function addIngredientSectionRow(title = '') {
+            const container = document.getElementById('form-ingredients-list');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 ingredient-form-row is-section-row pt-2';
+            row.innerHTML = `
+                <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase shrink-0">Подсписок:</span>
+                <input type="text" placeholder="Название этапа (например: Соус Бешамель, Начинка)" value="${escapeHtml(title)}" required class="ing-section-title flex-1 px-3 py-1.5 rounded-xl bg-amber-50/70 dark:bg-slate-800 border border-amber-300 dark:border-amber-700 font-semibold text-sm outline-none">
+                <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+            `;
+            container.appendChild(row);
         }
 
         function addIngredientRow(name = '', amount = '', unit = 'г') {
@@ -1205,6 +1473,45 @@
                 <input type="text" placeholder="Название продукта" value="${escapeHtml(name)}" required class="ing-name flex-1 px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">
                 <input type="number" placeholder="Кол-во" value="${amount !== '' && amount !== null ? amount : ''}" step="any" class="ing-amount w-20 sm:w-24 px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">
                 <select class="ing-unit w-24 px-2 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">${unitOptions}</select>
+                <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addLinkedRecipeRow(selectedRecipeId = '', ratio = 1, customLabel = '') {
+            const container = document.getElementById('form-linked-recipes-list');
+            if (!container) return;
+            const currentEditingId = document.getElementById('form-recipe-id').value;
+            const availableRecipes = recipes.filter(r => r.id !== currentEditingId);
+            if (availableRecipes.length === 0) {
+                showToast('Сначала создайте хотя бы один другой рецепт в базе', 'info');
+                return;
+            }
+            const row = document.createElement('div');
+            row.className = 'flex flex-wrap sm:flex-nowrap items-center gap-2 linked-recipe-form-row bg-white dark:bg-slate-900 p-2 rounded-xl border border-amber-200/80 dark:border-slate-700';
+            const optionsHtml = availableRecipes.map(r => `<option value="${escapeHtml(r.id)}" ${r.id === selectedRecipeId ? 'selected' : ''}>${escapeHtml(r.title)} (${r.baseServings} порц.)</option>`).join('');
+            row.innerHTML = `
+                <select class="linked-rec-id flex-1 min-w-[160px] px-2.5 py-1.5 rounded-lg bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-xs font-medium outline-none">
+                    ${optionsHtml}
+                </select>
+                <input type="text" placeholder="Название этапа (напр. Пюре)" value="${escapeHtml(customLabel)}" class="linked-rec-label w-36 px-2.5 py-1.5 rounded-lg bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-xs outline-none">
+                <div class="flex items-center gap-1">
+                    <span class="text-[11px] text-slate-400">Доля:</span>
+                    <input type="number" step="any" min="0.1" value="${ratio}" title="Коэффициент от базового рецепта (1 = целиком, 0.5 = половина)" class="linked-rec-ratio w-16 px-2 py-1.5 rounded-lg bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-xs font-bold text-center outline-none">
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addStepSectionRow(title = '') {
+            const container = document.getElementById('form-steps-list');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 step-form-row is-step-section pt-2';
+            row.innerHTML = `
+                <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase shrink-0">Этап:</span>
+                <input type="text" placeholder="Название этапа готовки (например: Соус Бешамель, Сборка)" value="${escapeHtml(title)}" required class="step-section-title flex-1 px-3 py-1.5 rounded-xl bg-amber-50/70 dark:bg-slate-800 border border-amber-300 dark:border-amber-700 font-semibold text-sm outline-none">
                 <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
             `;
             container.appendChild(row);
@@ -1228,11 +1535,16 @@
             const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
             const ingList = document.getElementById('form-ingredients-list');
             Array.from(ingList.querySelectorAll('.ingredient-form-row')).forEach(r => {
-                const nameVal = r.querySelector('.ing-name').value.trim();
-                if (!nameVal) r.remove();
+                const nameInput = r.querySelector('.ing-name');
+                if (nameInput && !nameInput.value.trim()) r.remove();
             });
 
             lines.forEach(line => {
+                // Если строка заканчивается двоеточием без цифр (например, "Соус Бешамель:"), создаем подзаголовок этапа
+                if (line.endsWith(':') && !/\d/.test(line)) {
+                    addIngredientSectionRow(line.slice(0, -1).trim());
+                    return;
+                }
                 const match = line.match(/^(.+?)\s*[-—:]?\s*(\d+(?:[.,]\d+)?)\s*(.*)$/);
                 if (match) {
                     const name = match[1].trim();
@@ -1260,17 +1572,38 @@
             const notes = document.getElementById('form-notes').value.trim();
 
             const ingRows = Array.from(document.querySelectorAll('#form-ingredients-list .ingredient-form-row'));
-            const ingredients = ingRows.map((row, idx) => ({
-                id: `ing-${Date.now()}-${idx}`,
-                name: row.querySelector('.ing-name').value.trim(),
-                amount: parseFloat(row.querySelector('.ing-amount').value) || 0,
-                unit: row.querySelector('.ing-unit').value
-            })).filter(i => i.name);
+            const ingredients = ingRows.map((row, idx) => {
+                if (row.classList.contains('is-section-row')) {
+                    const secTitle = row.querySelector('.ing-section-title').value.trim();
+                    return secTitle ? { id: `sec-${Date.now()}-${idx}`, name: secTitle, isSection: true } : null;
+                }
+                const name = row.querySelector('.ing-name').value.trim();
+                if (!name) return null;
+                return {
+                    id: `ing-${Date.now()}-${idx}`,
+                    name,
+                    amount: parseFloat(row.querySelector('.ing-amount').value) || 0,
+                    unit: row.querySelector('.ing-unit').value
+                };
+            }).filter(Boolean);
+
+            const linkedRows = Array.from(document.querySelectorAll('#form-linked-recipes-list .linked-recipe-form-row'));
+            const linkedRecipes = linkedRows.map(row => ({
+                recipeId: row.querySelector('.linked-rec-id').value,
+                label: row.querySelector('.linked-rec-label').value.trim(),
+                ratio: parseFloat(row.querySelector('.linked-rec-ratio').value) || 1
+            })).filter(l => l.recipeId);
 
             const stepRows = Array.from(document.querySelectorAll('#form-steps-list .step-form-row'));
-            const steps = stepRows.map(row => row.querySelector('.step-text').value.trim()).filter(Boolean);
+            const steps = stepRows.map(row => {
+                if (row.classList.contains('is-step-section')) {
+                    const stTitle = row.querySelector('.step-section-title').value.trim();
+                    return stTitle ? `## ${stTitle}` : '';
+                }
+                return row.querySelector('.step-text').value.trim();
+            }).filter(Boolean);
 
-            if (!title || ingredients.length === 0 || steps.length === 0) {
+            if (!title || (ingredients.length === 0 && linkedRecipes.length === 0) || (steps.length === 0 && linkedRecipes.length === 0)) {
                 showToast('Заполните название, ингредиенты и шаги', 'error');
                 return;
             }
@@ -1278,7 +1611,7 @@
             if (idInput) {
                 const idx = recipes.findIndex(r => r.id === idInput);
                 if (idx !== -1) {
-                    recipes[idx] = { ...recipes[idx], title, prepTime, baseServings, tags, notes, ingredients, steps };
+                    recipes[idx] = { ...recipes[idx], title, prepTime, baseServings, tags, notes, ingredients, linkedRecipes, steps };
                     activeRecipeId = idInput;
                 }
             } else {
@@ -1290,6 +1623,7 @@
                     tags,
                     notes,
                     ingredients,
+                    linkedRecipes,
                     steps
                 };
                 recipes.unshift(newRecipe);
