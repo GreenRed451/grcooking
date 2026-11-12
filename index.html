@@ -268,6 +268,15 @@
                     </div>
 
                     <div id="form-ingredients-list" class="space-y-2"></div>
+                    <!-- Нижняя панель быстрого добавления ингредиентов -->
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2 pt-2 border-t border-dashed border-stone-200 dark:border-slate-800">
+                        <button type="button" onclick="addIngredientRow()" class="px-3 py-1.5 rounded-xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 transition flex items-center gap-1">
+                            <i class="ph-bold ph-plus"></i> Добавить продукт
+                        </button>
+                        <button type="button" onclick="addIngredientSectionRow('')" class="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-stone-300 dark:hover:bg-slate-700 transition flex items-center gap-1">
+                            <i class="ph-bold ph-Rows"></i> + Этап (подсписок)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Блок вложенных рецептов (Ссылки на заготовки / этапы) -->
@@ -302,7 +311,16 @@
                             </button>
                         </div>
                     </div>
-                    <div id="form-steps-list" class="space-y-2"></div>
+                    <div id="form-steps-list" class="space-y-2.5"></div>
+                    <!-- Нижняя панель быстрого добавления шагов и этапов -->
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2 pt-2 border-t border-dashed border-stone-200 dark:border-slate-800">
+                        <button type="button" onclick="addStepRow()" class="px-3 py-1.5 rounded-xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 transition flex items-center gap-1">
+                            <i class="ph-bold ph-plus"></i> Добавить шаг ниже
+                        </button>
+                        <button type="button" onclick="addStepSectionRow()" class="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-stone-300 dark:hover:bg-slate-700 transition flex items-center gap-1">
+                            <i class="ph-bold ph-bookmark-simple"></i> + Этап (заголовок) ниже
+                        </button>
+                    </div>
                 </div>
 
                 <div class="pt-3 border-t border-stone-200 dark:border-slate-800 flex items-center justify-end gap-2">
@@ -1450,32 +1468,82 @@
             document.getElementById('recipe-modal').classList.add('hidden');
         }
 
-        function addIngredientSectionRow(title = '') {
-            const container = document.getElementById('form-ingredients-list');
-            if (!container) return;
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 ingredient-form-row is-section-row pt-2';
-            row.innerHTML = `
-                <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase shrink-0">Подсписок:</span>
-                <input type="text" placeholder="Название этапа (например: Соус Бешамель, Начинка)" value="${escapeHtml(title)}" required class="ing-section-title flex-1 px-3 py-1.5 rounded-xl bg-amber-50/70 dark:bg-slate-800 border border-amber-300 dark:border-amber-700 font-semibold text-sm outline-none">
-                <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
-            `;
-            container.appendChild(row);
+        // Перемещение строки вверх или вниз внутри контейнера
+        function moveFormRow(btnEl, direction) {
+            const row = btnEl.closest('.ingredient-form-row, .step-form-row');
+            if (!row || !row.parentElement) return;
+            const parent = row.parentElement;
+            if (direction === -1 && row.previousElementSibling) {
+                parent.insertBefore(row, row.previousElementSibling);
+            } else if (direction === 1 && row.nextElementSibling) {
+                parent.insertBefore(row.nextElementSibling, row);
+            }
         }
 
-        function addIngredientRow(name = '', amount = '', unit = 'г') {
+        function addIngredientSectionRow(title = '', afterElement = null) {
             const container = document.getElementById('form-ingredients-list');
             if (!container) return;
             const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 ingredient-form-row';
+            row.className = 'ingredient-form-row is-section-row p-2 rounded-xl bg-amber-50/50 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-800/60 space-y-1.5';
+            row.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase shrink-0">Подсписок:</span>
+                    <input type="text" placeholder="Название этапа (например: Соус Бешамель, Начинка)" value="${escapeHtml(title)}" required class="ing-section-title flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-semibold text-sm outline-none">
+                    <button type="button" onclick="this.closest('.ingredient-form-row').remove()" class="p-1.5 text-slate-400 hover:text-rose-500" title="Удалить"><i class="ph ph-trash"></i></button>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400 px-1">
+                    <div class="flex items-center gap-1">
+                        <span>Вставить ниже:</span>
+                        <button type="button" onclick="addIngredientRow('', '', 'г', this.closest('.ingredient-form-row'))" class="px-1.5 py-0.5 rounded bg-stone-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-200 dark:hover:bg-amber-900/60 font-medium transition">+ Продукт</button>
+                        <button type="button" onclick="addIngredientSectionRow('', this.closest('.ingredient-form-row'))" class="px-1.5 py-0.5 rounded bg-stone-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-200 dark:hover:bg-amber-900/60 font-medium transition">+ Подсписок</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="moveFormRow(this, -1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить выше"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button type="button" onclick="moveFormRow(this, 1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить ниже"><i class="ph-bold ph-arrow-down"></i></button>
+                    </div>
+                </div>
+            `;
+            if (afterElement && afterElement.parentElement === container) {
+                afterElement.after(row);
+                const inp = row.querySelector('input');
+                if (inp) inp.focus();
+            } else {
+                container.appendChild(row);
+            }
+        }
+
+        function addIngredientRow(name = '', amount = '', unit = 'г', afterElement = null) {
+            const container = document.getElementById('form-ingredients-list');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'ingredient-form-row p-2 rounded-xl bg-stone-50 dark:bg-slate-800/40 border border-stone-200/80 dark:border-slate-800 space-y-1.5';
             const unitOptions = AVAILABLE_UNITS.map(u => `<option value="${escapeHtml(u)}" ${u === unit ? 'selected' : ''}>${escapeHtml(u)}</option>`).join('');
             row.innerHTML = `
-                <input type="text" placeholder="Название продукта" value="${escapeHtml(name)}" required class="ing-name flex-1 px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">
-                <input type="number" placeholder="Кол-во" value="${amount !== '' && amount !== null ? amount : ''}" step="any" class="ing-amount w-20 sm:w-24 px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">
-                <select class="ing-unit w-24 px-2 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">${unitOptions}</select>
-                <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <input type="text" placeholder="Название продукта" value="${escapeHtml(name)}" required class="ing-name flex-1 min-w-0 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-sm outline-none focus:border-amber-500">
+                    <input type="number" placeholder="Кол-во" value="${amount !== '' && amount !== null ? amount : ''}" step="any" class="ing-amount w-20 sm:w-24 px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-sm outline-none focus:border-amber-500">
+                    <select class="ing-unit w-24 px-2 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-sm outline-none">${unitOptions}</select>
+                    <button type="button" onclick="this.closest('.ingredient-form-row').remove()" class="p-1.5 text-slate-400 hover:text-rose-500 shrink-0" title="Удалить продукт"><i class="ph ph-trash"></i></button>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400 px-1">
+                    <div class="flex items-center gap-1">
+                        <span>Вставить ниже:</span>
+                        <button type="button" onclick="addIngredientRow('', '', 'г', this.closest('.ingredient-form-row'))" class="px-1.5 py-0.5 rounded bg-stone-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-200 dark:hover:bg-amber-900/60 font-medium transition">+ Продукт</button>
+                        <button type="button" onclick="addIngredientSectionRow('', this.closest('.ingredient-form-row'))" class="px-1.5 py-0.5 rounded bg-stone-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-200 dark:hover:bg-amber-900/60 font-medium transition">+ Подсписок</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="moveFormRow(this, -1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить выше"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button type="button" onclick="moveFormRow(this, 1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить ниже"><i class="ph-bold ph-arrow-down"></i></button>
+                    </div>
+                </div>
             `;
-            container.appendChild(row);
+            if (afterElement && afterElement.parentElement === container) {
+                afterElement.after(row);
+                const inp = row.querySelector('.ing-name');
+                if (inp) inp.focus();
+            } else {
+                container.appendChild(row);
+            }
         }
 
         function addLinkedRecipeRow(selectedRecipeId = '', ratio = 1, customLabel = '') {
@@ -1517,16 +1585,67 @@
             container.appendChild(row);
         }
 
-        function addStepRow(text = '') {
+        function addStepSectionRow(title = '', afterElement = null) {
             const container = document.getElementById('form-steps-list');
             if (!container) return;
             const row = document.createElement('div');
-            row.className = 'flex items-start gap-2 step-form-row';
+            row.className = 'step-form-row is-step-section p-2.5 rounded-xl bg-amber-50/60 dark:bg-slate-800/70 border border-amber-200/80 dark:border-amber-800/60 space-y-1.5';
             row.innerHTML = `
-                <textarea rows="2" placeholder="Опишите шаг приготовления..." required class="step-text flex-1 px-3 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm outline-none">${escapeHtml(text)}</textarea>
-                <button type="button" onclick="this.parentElement.remove()" class="p-2 text-slate-400 hover:text-rose-500 mt-1"><i class="ph ph-trash"></i></button>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase shrink-0">Этап:</span>
+                    <input type="text" placeholder="Название этапа готовки (например: Соус Бешамель, Сборка)" value="${escapeHtml(title)}" required class="step-section-title flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-semibold text-sm outline-none focus:border-amber-500">
+                    <button type="button" onclick="this.closest('.step-form-row').remove()" class="p-1.5 text-slate-400 hover:text-rose-500" title="Удалить этап"><i class="ph ph-trash"></i></button>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400 px-1">
+                    <div class="flex items-center gap-1.5">
+                        <span>Вставить ниже:</span>
+                        <button type="button" onclick="addStepRow('', this.closest('.step-form-row'))" class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 hover:bg-amber-200 font-semibold transition">+ Шаг</button>
+                        <button type="button" onclick="addStepSectionRow('', this.closest('.step-form-row'))" class="px-2 py-0.5 rounded bg-stone-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-stone-300 font-medium transition">+ Этап</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="moveFormRow(this, -1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить выше"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button type="button" onclick="moveFormRow(this, 1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить ниже"><i class="ph-bold ph-arrow-down"></i></button>
+                    </div>
+                </div>
             `;
-            container.appendChild(row);
+            if (afterElement && afterElement.parentElement === container) {
+                afterElement.after(row);
+                const inp = row.querySelector('input');
+                if (inp) inp.focus();
+            } else {
+                container.appendChild(row);
+            }
+        }
+
+        function addStepRow(text = '', afterElement = null) {
+            const container = document.getElementById('form-steps-list');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'step-form-row p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/40 border border-stone-200/80 dark:border-slate-800 space-y-1.5';
+            row.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <textarea rows="2" placeholder="Опишите шаг приготовления..." required class="step-text flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-sm outline-none focus:border-amber-500">${escapeHtml(text)}</textarea>
+                    <button type="button" onclick="this.closest('.step-form-row').remove()" class="p-1.5 text-slate-400 hover:text-rose-500 mt-1" title="Удалить шаг"><i class="ph ph-trash"></i></button>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400 px-1">
+                    <div class="flex items-center gap-1.5">
+                        <span>Вставить ниже:</span>
+                        <button type="button" onclick="addStepRow('', this.closest('.step-form-row'))" class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 hover:bg-amber-200 font-semibold transition">+ Шаг</button>
+                        <button type="button" onclick="addStepSectionRow('', this.closest('.step-form-row'))" class="px-2 py-0.5 rounded bg-stone-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-stone-300 font-medium transition">+ Этап</button>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="moveFormRow(this, -1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить выше"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button type="button" onclick="moveFormRow(this, 1)" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Переместить ниже"><i class="ph-bold ph-arrow-down"></i></button>
+                    </div>
+                </div>
+            `;
+            if (afterElement && afterElement.parentElement === container) {
+                afterElement.after(row);
+                const area = row.querySelector('textarea');
+                if (area) area.focus();
+            } else {
+                container.appendChild(row);
+            }
         }
 
         function parseBulkIngredients() {
